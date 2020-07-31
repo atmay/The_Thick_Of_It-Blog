@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Профиль автора{% endblock %}
+{% block header %}Профиль автора{% endblock %}
+{% block content %}
+    <main role="main" class="container">
+        <div class="row">
+            <div class="col-md-3 mb-3 mt-1">
+                {% include 'includes/author_card.html' %}
+                {% include 'includes/follow_widget.html' with  %}
+            </div>
+
+            <div class="col-md-9">
+                {% include 'includes/paginator.html' %}
+
+                {% for post in page %}
+                    {% include 'includes/post_card.html' %}
+                {% endfor %}
+
+                {% include 'includes/paginator.html' %}
+            </div>
+        </div>
+    </main>
+{% endblock %}
