@@ -6,11 +6,10 @@ from .models import Post, Group, User, Follow
 from .forms import PostForm, CommentForm
 
 
-@cache_page(timeout=20)
+@cache_page(timeout=20, key_prefix='index_page')
 def index(request):
     post_list = Post.objects.all()
     paginator = Paginator(post_list, 10)
-
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
     return render(
@@ -108,7 +107,6 @@ def post_edit(request, username, post_id):
 def add_comment(request, username, post_id):
     post = get_object_or_404(Post, author__username=username,
                              id=post_id)
-    items = post.comments.all()
     form = CommentForm(request.POST or None)
     if form.is_valid():
         new_comment = form.save(commit=False)
