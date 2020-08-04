@@ -1,11 +1,11 @@
 import io
 import tempfile
 
-from PIL import Image
 from django.core.cache import cache
 from django.core.files.images import ImageFile
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from PIL import Image
 
 from .models import Comment, Follow, Group, Post, User
 
