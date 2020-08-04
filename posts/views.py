@@ -128,7 +128,7 @@ def follow_index(request):
 
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
-    return render(request, "follow.html",
+    return render(request, 'follow.html',
                   {'page': page, 'paginator': paginator})
 
 
@@ -150,11 +150,11 @@ def profile_unfollow(request, username):
 def page_not_found(request, exception):
     return render(
         request,
-        "misc/404.html",
-        {"path": request.path},
+        'misc/404.html',
+        {'path': request.path},
         status=404
     )
 
 
 def server_error(request):
-    return render(request, "misc/500.html", status=500)
+    return render(request, 'misc/500.html', status=500)

@@ -6,11 +6,11 @@ from django.contrib.flatpages import views
 from django.urls import include, path
 
 urlpatterns = [
-    path("", include("posts.urls"), name='index'),
+    path('', include("posts.urls"), name='index'),
     path('about/', include('django.contrib.flatpages.urls')),
-    path("auth/", include("users.urls"), name='auth'),
-    path("auth/", include("django.contrib.auth.urls")),
-    path("admin/admin", admin.site.urls),
+    path('auth/', include('users.urls'), name='auth'),
+    path('auth/', include('django.contrib.auth.urls')),
+    path('admin/admin', admin.site.urls),
 ]
 
 urlpatterns += [
@@ -22,8 +22,8 @@ urlpatterns += [
              {'url': '/about-spec/'}, name='about-spec'),
 ]
 
-handler404 = "posts.views.page_not_found"# noqa
-handler500 = "posts.views.server_error" # noqa
+handler404 = 'posts.views.page_not_found'# noqa
+handler500 = 'posts.views.server_error' # noqa
 
 if settings.DEBUG:
     import debug_toolbar
