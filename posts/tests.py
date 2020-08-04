@@ -1,8 +1,13 @@
+import io
+import tempfile
+
+from PIL import Image
 from django.core.cache import cache
-from django.test import TestCase, Client
+from django.core.files.images import ImageFile
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
-from .models import User, Post, Group, Comment, Follow
+from .models import Comment, Follow, Group, Post, User
 
 
 class TestStringMethods(TestCase):
@@ -58,17 +63,15 @@ class TestStringMethods(TestCase):
             self.check_post_values(response.context['post'],
                                    text, author, group, image)
 
-    def add_post_with_file(self, filename):
-        with open(filename, 'rb') as img:
-            post_with_file = self.client_auth.post(
-                reverse('new_post'),
-                data={
-                    'author': self.user,
-                    'text': 'post text',
-                    'group': self.group.id,
-                    'image': img
-                })
-            return post_with_file
+    def create_image(self):
+        with tempfile.TemporaryDirectory() as temp_directory:
+            with override_settings(MEDIA_ROOT=temp_directory):
+                file = io.BytesIO()
+                image = Image.new('RGBA', size=(100, 100), color=(155, 0, 0))
+                image.save(file, 'png')
+                file.name = 'test_image.png'
+                file.seek(0)
+                return file
 
     def test_post_exists(self):
         """Проверка наличия поста со всеми полями"""
@@ -76,8 +79,10 @@ class TestStringMethods(TestCase):
             text='text',
             author=self.user,
             group=self.group,
-            image='./static/Image.jpg')
+            image=ImageFile(self.create_image()))
+
         urls = self.get_the_urls(user=self.user, post=post, group=self.group)
+        cache.clear()
         for url in urls:
             self.check_post_on_page(
                 url=url,
@@ -92,7 +97,7 @@ class TestStringMethods(TestCase):
             text='тестовый пост',
             author=self.user,
             group=self.group,
-            image='image.jpg')
+            image=ImageFile(self.create_image()))
 
         group_new = Group.objects.create(
             title="Запад",
@@ -108,7 +113,7 @@ class TestStringMethods(TestCase):
         for url in urls:
             self.check_post_on_page(url=url, text=data['text'],
                                     author=self.user, group=group_new,
-                                    image='image.jpg')
+                                    image=post.image)
 
     def test_no_new_post(self):
         """Проверка не невозможность создать пост"""
@@ -150,7 +155,11 @@ class TestStringMethods(TestCase):
 
         cache.clear()
         # пробуем добавить пост с НЕПРАВИЛЬНОЙ картинкой
-        self.add_post_with_file('./static/NotImage.txt')
+        Post.objects.create(
+            text='тестовый пост',
+            author=self.user,
+            group=self.group,
+            image='./static/NotImage.txt')
 
         cache.clear()
         # Проверяем что картинки ВСЁ ЕЩЁ НЕТ
@@ -159,15 +168,19 @@ class TestStringMethods(TestCase):
 
         cache.clear()
         # пробуем добавить пост с ПРАВИЛЬНОЙ картинкой
-        self.add_post_with_file('./static/Image.jpg')
+        post = Post.objects.create(
+            text='тестовый пост',
+            author=self.user,
+            group=self.group,
+            image=ImageFile(self.create_image()))
 
         cache.clear()
         # Проверяем что картинка УЖЕ есть
         response = self.client.get(reverse('index'))
         self.assertContains(response, 'img')
 
-    def test_following_unfollowing(self):
-        """Проверка на возможность подписки и отписки"""
+    def test_following(self):
+        """Проверка на возможность подписки"""
         # проверяем исходное количество
         count_follow_before = Follow.objects.all().count()
         self.assertEqual(count_follow_before, 0)
@@ -179,7 +192,18 @@ class TestStringMethods(TestCase):
         count_follow_after = Follow.objects.all().count()
         self.assertEqual(count_follow_after, 1)
 
+    def test_unfollowing(self):
+        """Проверка на возможность отписки"""
+        # проверяем исходное количество, формируем подписку для проверки
+        count_follow_before = Follow.objects.all().count()
+        self.assertEqual(count_follow_before, 0)
+
+        kwargs = {'username': self.user2.username}
+        path_to_follow = reverse('profile_follow', kwargs=kwargs)
+        self.client_auth.get(path_to_follow)
+
         # пробуем отписать юзера и проверяем успех
+        kwargs = {'username': self.user2.username}
         path_to_unfollow = reverse('profile_unfollow', kwargs=kwargs)
         self.client_auth.get(path_to_unfollow)
         count_unfollow_after = Follow.objects.all().count()

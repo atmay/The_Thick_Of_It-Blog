@@ -1,9 +1,10 @@
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.cache import cache_page
-from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
-from .models import Post, Group, User, Follow
-from .forms import PostForm, CommentForm
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.cache import cache_page
+
+from .forms import CommentForm, PostForm
+from .models import Follow, Group, Post, User
 
 
 @cache_page(timeout=20, key_prefix='index_page')
@@ -142,8 +143,7 @@ def profile_follow(request, username):
 @login_required
 def profile_unfollow(request, username):
     author = get_object_or_404(User, username=username)
-    un_follow = Follow.objects.get(user=request.user, author=author)
-    un_follow.delete()
+    Follow.objects.filter(user=request.user, author=author).delete()
     return redirect('profile', username=username)
 
 
