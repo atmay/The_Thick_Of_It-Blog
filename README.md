@@ -1,7 +1,7 @@
 # The Thick Of It
 ## Write your stories, discuss them and stay in touch! Be in the thick of it :)
 
-This blog site is perfect for authors who seek to tell the world their stories. 
+This blog site is perfect for authors who seek to tell the world their stories.
 
 ### Features:
 - Create/ update/ delete your posts and add visuals
@@ -16,3 +16,7 @@ This blog site is perfect for authors who seek to tell the world their stories.
 - install requirments (pip install -r requirements.txt)
 - deal with migrations (python manage.py migrate)
 - run server (python manage.py runserver)
+
+### Technologies:
+Django
+Jinja2
